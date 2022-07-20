@@ -7,8 +7,13 @@ import (
 	"github.com/rombintu/godnszone/utils"
 )
 
+const (
+	zoneTestName string = "example.com"
+	fileTestName string = "example.com"
+)
+
 func TestExecCommand(t *testing.T) {
-	params := []string{"example.com", "example.com"}
+	params := []string{zoneTestName, fileTestName}
 	command := "named-checkzone"
 	stdOut, err := utils.ExecCommand(command, params...)
 	fmt.Println(stdOut)
@@ -19,7 +24,7 @@ func TestExecCommand(t *testing.T) {
 
 func TestNewZoneChecker(t *testing.T) {
 	zc := NewZoneChecker()
-	fmt.Println(zc.IsValid("example.com", "example.com"))
+	fmt.Println(zc.IsValid(zoneTestName, fileTestName))
 	fmt.Println(zc.Output)
 	fmt.Println(zc.Error)
 	if zc.Error != nil {
@@ -29,10 +34,19 @@ func TestNewZoneChecker(t *testing.T) {
 
 func TestNewZoneReloader(t *testing.T) {
 	zr := NewZoneReloader()
-	fmt.Println(zr.Reload("example.com"))
+	fmt.Println(zr.Reload(zoneTestName))
 	fmt.Println(zr.Output)
 	fmt.Println(zr.Error)
 	if zr.Error != nil {
 		t.Error(zr.Error)
 	}
+}
+
+func TestNewZoneWorker(t *testing.T) {
+	zw := ZoneFromFile(zoneTestName, fileTestName)
+	fmt.Printf("%+v \n", zw.Zone.SOA.Serial)
+	if zw.Errors != nil {
+		t.Error(zw.Errors)
+	}
+
 }
