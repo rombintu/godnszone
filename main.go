@@ -1,0 +1,5 @@
+package godnszone
+
+func main() {
+
+}
