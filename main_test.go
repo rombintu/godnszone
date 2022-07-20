@@ -44,7 +44,7 @@ func TestNewZoneReloader(t *testing.T) {
 
 func TestNewZoneWorker(t *testing.T) {
 	zw := ZoneFromFile(zoneTestName, fileTestName)
-	fmt.Printf("%+v \n", zw.Zone.SOA.Serial)
+	fmt.Printf("%+v \n", zw.Zone.Records)
 	if zw.Errors != nil {
 		t.Error(zw.Errors)
 	}

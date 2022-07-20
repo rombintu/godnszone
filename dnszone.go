@@ -28,12 +28,20 @@ type Zone struct {
 
 type ZoneWorker struct {
 	// Parser      *dns.ZoneParser
-	Zone   Zone
+	Zone   *Zone
 	Errors []error
 }
 
+func newZone() *Zone {
+	return &Zone{
+		Records: make(map[string][]ExRR),
+	}
+}
+
 func newZoneWorker() *ZoneWorker {
-	return &ZoneWorker{}
+	return &ZoneWorker{
+		Zone: newZone(),
+	}
 }
 
 func ZoneFromFile(zoneName, fileName string) *ZoneWorker {
@@ -45,21 +53,23 @@ func ZoneFromFile(zoneName, fileName string) *ZoneWorker {
 	zw := newZoneWorker()
 	zp := dns.NewZoneParser(bytes.NewReader(file), zoneName, fileName)
 
-	for r, ok := zp.Next(); ok; r, ok = zp.Next() {
-		switch r.Header().Rrtype {
+	for rr, ok := zp.Next(); ok; rr, ok = zp.Next() {
+		switch rr.Header().Class {
 		case dns.TypeSOA:
-			zw.Zone.SOA = r.(*dns.SOA)
+			zw.Zone.SOA = rr.(*dns.SOA)
+			zw.Zone.Domain = rr.(*dns.SOA).Header().Name
+			zw.Zone.Serial = rr.(*dns.SOA).Serial
 		default:
-			// zw.Zone.Records[r.Header().Name]
-			// newExRR(r, zp.Comment())
+			recordType := dns.TypeToString[rr.Header().Class]
+			zw.Zone.Records[recordType] = append(zw.Zone.Records[recordType], newExRR(rr, zp.Comment()))
+			// fmt.Println(zp.Comment())
 		}
 	}
 
 	if err := zp.Err(); err != nil {
-		log.Println(err)
+		zw.Errors = append(zw.Errors, err)
 	}
-	zw.Zone.Domain = zw.Zone.SOA.Header().Name
-	zw.Zone.Serial = zw.Zone.SOA.Serial
+
 	return zw
 }
 
