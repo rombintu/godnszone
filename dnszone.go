@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/miekg/dns"
 )
@@ -44,8 +46,40 @@ func newZoneWorker() *ZoneWorker {
 	}
 }
 
-func (zw *ZoneWorker) TableByType(t string) {
-	// TODO
+// func (zw *ZoneWorker) Table() { // TODO
+
+// 	w := tabwriter.NewWriter(os.Stdout, 15, 0, 1, ' ', tabwriter.AlignRight)
+// 	fmt.Fprintln(w, "TYPE\tRECORDS\tCOMMENTS\t")
+
+// 	for _, rr := range zw.Zone.Records {
+// 		buffLine := ""
+// 		for _, r := range rr {
+// 			buffLine += fmt.Sprintf("%s [%s]\t", r.RR.Header().Name, r.Comment)
+// 		}
+// 		fmt.Fprintln(w, buffLine)
+// 	}
+// 	w.Flush()
+// }
+
+func NewSerial(oldSerial uint32) (uint32, error) {
+	t := time.Now().Local()
+	parseUint, err := strconv.ParseUint(
+		fmt.Sprintf("%04d%02d%02d00", t.Year(), t.Month(), t.Day()),
+		10,
+		32,
+	)
+	if err != nil {
+		return 0, err
+	}
+	newSerial := uint32(parseUint)
+	if newSerial <= oldSerial {
+		newSerial = oldSerial + 1
+	}
+	return newSerial, nil
+}
+
+func (zw *ZoneWorker) Save() {
+
 }
 
 func ZoneFromFile(zoneName, fileName string) *ZoneWorker {

@@ -53,3 +53,19 @@ func TestNewZoneWorker(t *testing.T) {
 	}
 
 }
+
+// func TestTable(t *testing.T) { // TODO
+// 	zw := ZoneFromFile(zoneTestName, fileTestName)
+// 	if zw.Errors != nil {
+// 		t.Error(zw.Errors)
+// 	}
+// 	zw.Table()
+// }
+
+func TestNewSerial(t *testing.T) {
+	newSerial, err := NewSerial(2022072101)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(newSerial)
+}
