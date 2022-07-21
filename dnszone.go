@@ -9,67 +9,24 @@ import (
 	"time"
 
 	"github.com/miekg/dns"
+	"github.com/rombintu/godnszone/utils"
 )
 
-const (
-	zoneName string = "example.com"
-	fileName string = "example.com"
-)
-
+// Custom record with comment
 type ExRR struct {
 	RR      dns.RR
 	Comment string
 }
 
-type Zone struct {
-	SOA     *dns.SOA
-	Domain  string
-	Serial  uint32
-	Records map[string][]ExRR
-}
-
-type ZoneWorker struct {
-	// Parser      *dns.ZoneParser
-	Zone   *Zone
-	Errors []error
-}
-
-func newZone() *Zone {
-	return &Zone{
-		Records: make(map[string][]ExRR),
-	}
-}
-
-func newZoneWorker() *ZoneWorker {
-	return &ZoneWorker{
-		Zone: newZone(),
-	}
-}
-
-// func (zw *ZoneWorker) Table() { // TODO
-
-// 	w := tabwriter.NewWriter(os.Stdout, 15, 0, 1, ' ', tabwriter.AlignRight)
-// 	fmt.Fprintln(w, "TYPE\tRECORDS\tCOMMENTS\t")
-
-// 	for _, rr := range zw.Zone.Records {
-// 		buffLine := ""
-// 		for _, r := range rr {
-// 			buffLine += fmt.Sprintf("%s [%s]\t", r.RR.Header().Name, r.Comment)
-// 		}
-// 		fmt.Fprintln(w, buffLine)
-// 	}
-// 	w.Flush()
-// }
-
-func NewSerial(oldSerial uint32) (uint32, error) {
+func newSerial(oldSerial uint32) (uint32, error) {
 	t := time.Now().Local()
 	parseUint, err := strconv.ParseUint(
-		fmt.Sprintf("%04d%02d%02d00", t.Year(), t.Month(), t.Day()),
+		fmt.Sprintf(utils.SerialFormat, t.Year(), t.Month(), t.Day()),
 		10,
 		32,
 	)
 	if err != nil {
-		return 0, err
+		return oldSerial, err
 	}
 	newSerial := uint32(parseUint)
 	if newSerial <= oldSerial {
@@ -78,14 +35,10 @@ func NewSerial(oldSerial uint32) (uint32, error) {
 	return newSerial, nil
 }
 
-func (zw *ZoneWorker) Save() {
-
-}
-
 func ZoneFromFile(zoneName, fileName string) *ZoneWorker {
-	file, err := os.ReadFile(fileName)
+	file, err := os.ReadFile(utils.ToValidPath(fileName))
 	if err != nil {
-		log.Fatal("READFILE: ", err)
+		log.Fatalf("%+v", err)
 	}
 
 	zw := newZoneWorker()
@@ -118,8 +71,8 @@ func newExRR(rr dns.RR, comment string) ExRR {
 	}
 }
 
-func newRR(record, typ, ip, comment string) (ExRR, error) {
-	RR, err := dns.NewRR(fmt.Sprintf("%s %s %s", record, typ, ip))
+func addRR(name, t, ip, comment string) (ExRR, error) {
+	RR, err := dns.NewRR(fmt.Sprintf("%s %s %s", name, t, ip))
 	if err != nil {
 		return ExRR{}, err
 	}
@@ -128,13 +81,4 @@ func newRR(record, typ, ip, comment string) (ExRR, error) {
 		RR:      RR,
 		Comment: comment,
 	}, nil
-}
-
-func main() {
-	rr, err := newRR("bfd", "A", "192.168.10.20", "запись для проекта")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(rr)
-
 }
