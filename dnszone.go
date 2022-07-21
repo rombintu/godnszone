@@ -36,13 +36,14 @@ func newSerial(oldSerial uint32) (uint32, error) {
 }
 
 func ZoneFromFile(zoneName, fileName string) *ZoneWorker {
-	file, err := os.ReadFile(utils.ToValidPath(fileName))
+	filePath := utils.ToValidPath(fileName)
+	content, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}
 
-	zw := newZoneWorker()
-	zp := dns.NewZoneParser(bytes.NewReader(file), zoneName, fileName)
+	zw := newZoneWorker(filePath)
+	zp := dns.NewZoneParser(bytes.NewReader(content), zoneName, zw.FilePath)
 
 	for rr, ok := zp.Next(); ok; rr, ok = zp.Next() {
 		switch rr.Header().Rrtype {
@@ -51,9 +52,8 @@ func ZoneFromFile(zoneName, fileName string) *ZoneWorker {
 			zw.Zone.Domain = rr.(*dns.SOA).Header().Name
 			zw.Zone.Serial = rr.(*dns.SOA).Serial
 		default:
-
-			recordType := dns.TypeToString[rr.Header().Rrtype]
-			zw.Zone.Records[recordType] = append(zw.Zone.Records[recordType], newExRR(rr, zp.Comment()))
+			rType := dns.TypeToString[rr.Header().Rrtype]
+			zw.Zone.Records[rType] = append(zw.Zone.Records[rType], newExRR(rr, zp.Comment()))
 		}
 	}
 
@@ -71,8 +71,20 @@ func newExRR(rr dns.RR, comment string) ExRR {
 	}
 }
 
-func addRR(name, t, ip, comment string) (ExRR, error) {
-	RR, err := dns.NewRR(fmt.Sprintf("%s %s %s", name, t, ip))
+func addRR(rName, rType, rIP, comment string) (ExRR, error) {
+	RR, err := dns.NewRR(fmt.Sprintf("%s %s %s", rName, rType, rIP))
+	if err != nil {
+		return ExRR{}, err
+	}
+
+	return ExRR{
+		RR:      RR,
+		Comment: comment,
+	}, nil
+}
+
+func addDryRR(rr, comment string) (ExRR, error) {
+	RR, err := dns.NewRR(rr)
 	if err != nil {
 		return ExRR{}, err
 	}

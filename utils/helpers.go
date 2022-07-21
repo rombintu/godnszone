@@ -6,7 +6,9 @@ const (
 
 	SerialUpdate string = "Serial was update"
 	SerialFormat string = "%04d%02d%02d00"
-	RecordCreate string = "Record created: [%s]"
-	RecordUpdate string = "Record updated: [%s] => [%s]"
-	RecordDelete string = "Record deleted: [%s]"
+
+	RecordCreate   string = "Record created: [%s]"
+	RecordUpdate   string = "Record updated: [%s] => [%s]"
+	RecordDelete   string = "Record deleted: [%s]"
+	RecordNotFound string = "Record [%s] not found"
 )
