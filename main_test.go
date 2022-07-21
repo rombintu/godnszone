@@ -44,7 +44,10 @@ func TestNewZoneReloader(t *testing.T) {
 
 func TestNewZoneWorker(t *testing.T) {
 	zw := ZoneFromFile(zoneTestName, fileTestName)
-	fmt.Printf("%+v \n", zw.Zone.Records)
+	// fmt.Printf("%+v \n", zw.Zone.Records["A"])
+	for i, r := range zw.Zone.Records {
+		fmt.Println(i, r)
+	}
 	if zw.Errors != nil {
 		t.Error(zw.Errors)
 	}

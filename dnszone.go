@@ -15,7 +15,7 @@ const (
 )
 
 type ExRR struct {
-	dns.RR
+	RR      dns.RR
 	Comment string
 }
 
@@ -44,6 +44,10 @@ func newZoneWorker() *ZoneWorker {
 	}
 }
 
+func (zw *ZoneWorker) TableByType(t string) {
+	// TODO
+}
+
 func ZoneFromFile(zoneName, fileName string) *ZoneWorker {
 	file, err := os.ReadFile(fileName)
 	if err != nil {
@@ -54,15 +58,15 @@ func ZoneFromFile(zoneName, fileName string) *ZoneWorker {
 	zp := dns.NewZoneParser(bytes.NewReader(file), zoneName, fileName)
 
 	for rr, ok := zp.Next(); ok; rr, ok = zp.Next() {
-		switch rr.Header().Class {
+		switch rr.Header().Rrtype {
 		case dns.TypeSOA:
 			zw.Zone.SOA = rr.(*dns.SOA)
 			zw.Zone.Domain = rr.(*dns.SOA).Header().Name
 			zw.Zone.Serial = rr.(*dns.SOA).Serial
 		default:
-			recordType := dns.TypeToString[rr.Header().Class]
+
+			recordType := dns.TypeToString[rr.Header().Rrtype]
 			zw.Zone.Records[recordType] = append(zw.Zone.Records[recordType], newExRR(rr, zp.Comment()))
-			// fmt.Println(zp.Comment())
 		}
 	}
 
