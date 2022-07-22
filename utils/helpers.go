@@ -9,7 +9,7 @@ var (
 	reset           = "\033[0m"
 	red             = "\033[31m"
 	green           = "\033[32m"
-	ColorErr string = red + "ERROR" + reset
+	ColorErr string = red + "FAILED" + reset
 	ColorSuc string = green + "SUCCESS" + reset
 )
 

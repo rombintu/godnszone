@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -40,4 +42,35 @@ func ToValidName(name string) string {
 	} else {
 		return name + "."
 	}
+}
+
+func Copy(src, dst string) error {
+	sourceFileStat, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	if !sourceFileStat.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", src)
+	}
+
+	source, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer source.Close()
+
+	destination, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destination.Close()
+	if _, err := io.Copy(destination, source); err != nil {
+		return err
+	}
+	return nil
+}
+
+func FilePathToBackupPath(fileName string) string {
+	return fmt.Sprintf("%s.bak", fileName)
 }

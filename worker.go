@@ -112,9 +112,26 @@ func (zw *ZoneWorker) VerifyExist(rr ExRR) bool {
 	return exist
 }
 
-func (zw *ZoneWorker) Save() {
+func (zw *ZoneWorker) Save(autoSerial bool) error {
 	// TODO
+	if autoSerial {
+		if err := zw.UpdateSerial(); err != nil {
+			return err
+		}
+	}
+	// TODO
+	return nil
+}
 
+// Create new file.bak (from zw.FilePath)
+func (zw *ZoneWorker) Backup() error {
+	if err := utils.Copy(
+		zw.FilePath,
+		utils.FilePathToBackupPath(zw.FilePath),
+	); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (zw *ZoneWorker) UpdateSerial() error {

@@ -13,11 +13,6 @@ const (
 	fileTestName string = "example.com"
 )
 
-type testPairBool struct {
-	values  []string
-	average bool
-}
-
 func TestExecCommand(t *testing.T) {
 	params := []string{zoneTestName, fileTestName}
 	command := "named-checkzone"
@@ -110,7 +105,7 @@ func TestUpdateRecord(t *testing.T) {
 	rr1, _ := dns.NewRR("ns122.example A 192.199.228.1")
 	if err := zw.UpdateRecordByName(
 		"ns50.example.com",
-		"A",
+		"ABV",
 		newExRRFromRR(rr1, ""),
 	); err != nil {
 		t.Error(err)
@@ -193,5 +188,12 @@ func TestToValidName(t *testing.T) {
 				t.Errorf("Got: %s\n Want: %s", ans, tt.want)
 			}
 		})
+	}
+}
+
+func TestBackup(t *testing.T) {
+	zw := ZoneFromFile(zoneTestName, fileTestName)
+	if err := zw.Backup(); err != nil {
+		t.Error(err)
 	}
 }
