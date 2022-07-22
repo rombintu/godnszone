@@ -94,3 +94,7 @@ func addDryRR(rr, comment string) (ExRR, error) {
 		Comment: comment,
 	}, nil
 }
+
+func TypeFromRR(rr ExRR) string {
+	return dns.TypeToString[rr.RR.Header().Rrtype]
+}
