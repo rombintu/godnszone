@@ -14,18 +14,24 @@ var (
 )
 
 const (
-	ZoneIsValid    string = "File is valid"
-	ZoneIsNotValid string = "File is not valid"
+	ZoneIsValid    string = "file is valid"
+	ZoneIsNotValid string = "file is not valid"
 
-	SerialUpdated    string = "Serial updated"
-	SerialNotUpdated string = "Srerial not updated"
+	SerialUpdated    string = "serial updated"
+	SerialNotUpdated string = "srerial not updated"
 	SerialFormat     string = "%04d%02d%02d00"
 
-	RecordCreate   string = "Record created:"
-	RecordUpdate   string = "Record updated:"
-	RecordDelete   string = "Record deleted:"
-	RecordNotFound string = "Record not found"
-	RecordIsExists string = "Record is exists"
+	RecordCreate    string = "record created:"
+	RecordNotCreate string = "record not created:"
+
+	RecordUpdate    string = "record updated:"
+	RecordNotUpdate string = "record not updated:"
+
+	RecordDelete    string = "record deleted:"
+	RecordNotDelete string = "record not deleted:"
+
+	RecordNotFound string = "record not found"
+	RecordIsExists string = "record is exists"
 )
 
 // Windows not supported color outputs

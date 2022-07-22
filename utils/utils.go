@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 // Execute any commands from shell
@@ -29,5 +30,14 @@ func ToValidPath(path string) string {
 			log.Fatal(err)
 		}
 		return filepath.Join(workDir, path)
+	}
+}
+
+func ToValidName(name string) string {
+	slice := strings.Split(name, "")
+	if slice[len(slice)-1] == "." {
+		return name
+	} else {
+		return name + "."
 	}
 }

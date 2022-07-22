@@ -70,21 +70,69 @@ func TestNewSerial(t *testing.T) {
 
 func TestDeleteRecord(t *testing.T) {
 	zw := ZoneFromFile(zoneTestName, fileTestName)
-	zw.delRecordByName("ns6.example.com", "TXT")
-	fmt.Println(zw.getActions())
+	fmt.Println("TEST 1 >>")
+	fmt.Println(zw.Zone.Records["TXT"])
+	if err := zw.DeleteRecordByName("_acme-challenge.brr.example.com", "TXT"); err != nil {
+		t.Error(err)
+	}
+	fmt.Println(zw.GetActions())
+	fmt.Println(zw.Zone.Records["TXT"])
+
+	fmt.Println("TEST 2 >>")
+	fmt.Println(zw.Zone.Records["A"])
+	if err := zw.DeleteRecordByName("site.example.com", "A"); err != nil {
+		t.Error(err)
+	}
+	fmt.Println(zw.GetActions())
+	fmt.Println(zw.Zone.Records["A"])
 }
 
 func TestAddRecord(t *testing.T) {
+	fmt.Println("TEST WITH NOT EXIST >>")
 	zw := ZoneFromFile(zoneTestName, fileTestName)
-	rr, _ := dns.NewRR("ns6.example A 192.199.22.1")
-	zw.addRecord(newExRR(rr, "Example create"))
-	fmt.Println(zw.getActions())
+	rr1, _ := dns.NewRR("ns6.example A 192.199.228.1")
+	if err := zw.AddRecord(newExRRFromRR(rr1, "Example create")); err != nil {
+		t.Error(err)
+	}
+	fmt.Println(zw.GetActions())
+
+	fmt.Println("TEST WITH EXIST >>")
+	rr2, _ := dns.NewRR("ns5.example.com A 192.26.238.38")
+	if err := zw.AddRecord(newExRRFromRR(rr2, "Example create")); err != nil {
+		t.Error(err)
+	}
+	fmt.Println(zw.GetActions())
+}
+
+func TestUpdateRecord(t *testing.T) {
+	fmt.Println("TEST WITH NOT EXIST >>")
+	zw := ZoneFromFile(zoneTestName, fileTestName)
+	rr1, _ := dns.NewRR("ns122.example A 192.199.228.1")
+	if err := zw.UpdateRecordByName(
+		"ns50.example.com",
+		"A",
+		newExRRFromRR(rr1, ""),
+	); err != nil {
+		t.Error(err)
+	}
+	fmt.Println(zw.GetActions())
+
+	fmt.Println("TEST WITH EXIST >>")
+	rr2, _ := dns.NewRR("ns5.example.com A 192.26.238.38")
+	if err := zw.UpdateRecordByName(
+		"ns5.example.com",
+		"A",
+		newExRRFromRR(rr2, "Example create"),
+	); err != nil {
+		t.Error(err)
+	}
+	fmt.Println(zw.GetActions())
 }
 
 func TestVerifyExist(t *testing.T) {
-	rr1, _ := addDryRR("example.com NS ns1.example.com", "")
-	rr2, _ := addDryRR("ns5.example.com A 192.26.238.38", "")
-	rr3, _ := addDryRR("ns1.example.ru TXT fsdffsdf", "")
+	rr1, _ := newExRRFromDry("example.com NS ns1.example.com", "")
+	rr2, _ := newExRRFromDry("ns5.example.com A 192.26.238.38", "")
+	rr3, _ := newExRRFromDry("ns1.example.ru TXT fsdffsdf", "")
 	var tests = []struct {
 		in1  ExRR
 		want bool
@@ -124,6 +172,25 @@ func TestVerifyExistByName(t *testing.T) {
 			ans := zw.VerifyExistByName(tt.nameIn, tt.typeIn)
 			if ans != tt.want {
 				t.Errorf("Got %t, want %t", ans, tt.want)
+			}
+		})
+	}
+}
+
+func TestToValidName(t *testing.T) {
+	var tests = []struct {
+		in, want string
+	}{
+		{"some", "some."},
+		{"some.", "some."},
+		{"string..", "string."},
+	}
+	for _, tt := range tests {
+		testName := fmt.Sprintf("%s %s", tt.in, tt.want)
+		t.Run(testName, func(t *testing.T) {
+			ans := utils.ToValidName(tt.in)
+			if ans != tt.want {
+				t.Errorf("Got: %s\n Want: %s", ans, tt.want)
 			}
 		})
 	}

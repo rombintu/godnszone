@@ -1,6 +1,8 @@
 package godnszone
 
 import (
+	"errors"
+
 	"github.com/miekg/dns"
 	"github.com/rombintu/godnszone/utils"
 )
@@ -33,47 +35,73 @@ func newZoneWorker(filePath string) *ZoneWorker {
 	}
 }
 
+func (zw *ZoneWorker) addError(err string) {
+	zw.Errors = append(zw.Errors, errors.New(err))
+}
+
 func (zw *ZoneWorker) addAction(action string) {
 	zw.Actions = append(zw.Actions, action)
 }
 
-func (zw *ZoneWorker) getActions() []string {
+func (zw *ZoneWorker) GetActions() []string {
 	return zw.Actions
 }
 
-func (zw *ZoneWorker) addRecord(rr ExRR) {
+func (zw *ZoneWorker) AddRecord(rr ExRR) error {
+	if zw.VerifyExist(rr) {
+		zw.addAction(utils.ToOutput(utils.RecordIsExists, rr.RR.String(), utils.ColorErr))
+		return errors.New(utils.ToOutput(utils.RecordNotCreate, rr.RR.String(), utils.ColorErr))
+	}
 	rType := dns.TypeToString[rr.RR.Header().Rrtype]
 	zw.Zone.Records[rType] = append(zw.Zone.Records[rType], rr)
 	zw.addAction(utils.ToOutput(utils.RecordCreate, rr.RR.String(), utils.ColorSuc))
+	return nil
 }
 
-func (zw *ZoneWorker) delRecordByName(rName, rType string) {
-	deleted := false
+func (zw *ZoneWorker) DeleteRecordByName(rName, rType string) error {
+
 	for i, rr := range zw.Zone.Records[rType] {
-		if rr.RR.Header().Name == rName+"." {
+		if rr.RR.Header().Name == dns.CanonicalName(rName) {
 			zw.Zone.Records[rType] = append(
 				zw.Zone.Records[rType][:i],
 				zw.Zone.Records[rType][i+1:]...,
 			)
-			deleted = true
 			zw.addAction(utils.ToOutput(utils.RecordDelete, rName, rType, utils.ColorSuc))
+			return nil
 		}
 	}
-	if !deleted {
-		zw.addAction(utils.ToOutput(utils.RecordNotFound, rName, rType, utils.ColorErr))
-	}
+
+	zw.addAction(utils.ToOutput(utils.RecordNotDelete, rName, rType, utils.ColorErr))
+	return errors.New(utils.ToOutput(utils.RecordNotDelete, rName, rType, utils.ColorErr))
 }
 
+func (zw *ZoneWorker) UpdateRecordByName(rName, rType string, newRR ExRR) error {
+	if !zw.VerifyExistByName(rName, rType) {
+		zw.addAction(utils.ToOutput(utils.RecordNotUpdate, rName, rType, utils.ColorErr))
+		return errors.New(utils.ToOutput(utils.RecordNotFound, rName, rType, utils.ColorErr))
+	}
+	for i, rr := range zw.Zone.Records[rType] {
+		if rr.RR.Header().Name == dns.CanonicalName(rName) {
+			zw.Zone.Records[rType][i] = rr
+			zw.addAction(utils.ToOutput(utils.RecordUpdate, rName, rType, utils.ColorSuc))
+			return nil
+		}
+	}
+	return errors.New(utils.ToOutput(utils.RecordNotUpdate, rName, rType, utils.ColorErr))
+}
+
+// If record exist return TRUE
 func (zw *ZoneWorker) VerifyExistByName(rName, rType string) bool {
 	exist := false
 	for _, rr := range zw.Zone.Records[rType] {
-		if rr.RR.Header().Name == rName+"." {
+		if rr.RR.Header().Name == dns.CanonicalName(rName) {
 			exist = true
 		}
 	}
 	return exist
 }
 
+// If record exist return TRUE
 func (zw *ZoneWorker) VerifyExist(rr ExRR) bool {
 	exist := false
 	for _, r := range zw.Zone.Records[TypeFromRR(rr)] {
@@ -86,6 +114,7 @@ func (zw *ZoneWorker) VerifyExist(rr ExRR) bool {
 
 func (zw *ZoneWorker) Save() {
 	// TODO
+
 }
 
 func (zw *ZoneWorker) UpdateSerial() error {

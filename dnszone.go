@@ -53,25 +53,25 @@ func ZoneFromFile(zoneName, fileName string) *ZoneWorker {
 			zw.Zone.Serial = rr.(*dns.SOA).Serial
 		default:
 			rType := dns.TypeToString[rr.Header().Rrtype]
-			zw.Zone.Records[rType] = append(zw.Zone.Records[rType], newExRR(rr, zp.Comment()))
+			zw.Zone.Records[rType] = append(zw.Zone.Records[rType], newExRRFromRR(rr, zp.Comment()))
 		}
 	}
 
 	if err := zp.Err(); err != nil {
-		zw.Errors = append(zw.Errors, err)
+		zw.addError(err.Error())
 	}
 
 	return zw
 }
 
-func newExRR(rr dns.RR, comment string) ExRR {
+func newExRRFromRR(rr dns.RR, comment string) ExRR {
 	return ExRR{
 		RR:      rr,
 		Comment: comment,
 	}
 }
 
-func addRR(rName, rType, rIP, comment string) (ExRR, error) {
+func newExRRFromString(rName, rType, rIP, comment string) (ExRR, error) {
 	RR, err := dns.NewRR(fmt.Sprintf("%s %s %s", rName, rType, rIP))
 	if err != nil {
 		return ExRR{}, err
@@ -83,7 +83,7 @@ func addRR(rName, rType, rIP, comment string) (ExRR, error) {
 	}, nil
 }
 
-func addDryRR(rr, comment string) (ExRR, error) {
+func newExRRFromDry(rr, comment string) (ExRR, error) {
 	RR, err := dns.NewRR(rr)
 	if err != nil {
 		return ExRR{}, err
