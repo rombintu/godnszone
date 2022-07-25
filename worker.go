@@ -36,11 +36,15 @@ func newZoneWorker(filePath string) *ZoneWorker {
 	}
 }
 
-func (zw *ZoneWorker) addError(err string) {
+func (zw *ZoneWorker) AddError(err string) {
 	zw.Errors = append(zw.Errors, errors.New(err))
 }
 
-func (zw *ZoneWorker) addAction(action string) {
+func (zw *ZoneWorker) GetErrors() []error {
+	return zw.Errors
+}
+
+func (zw *ZoneWorker) AddAction(action string) {
 	zw.Actions = append(zw.Actions, action)
 }
 
@@ -50,12 +54,12 @@ func (zw *ZoneWorker) GetActions() []string {
 
 func (zw *ZoneWorker) AddRecord(rr ExRR) error {
 	if zw.VerifyExist(rr) {
-		zw.addAction(utils.ToOutput(utils.RecordIsExists, rr.RR.String(), utils.ColorErr))
+		zw.AddAction(utils.ToOutput(utils.RecordIsExists, rr.RR.String(), utils.ColorErr))
 		return errors.New(utils.ToOutput(utils.RecordNotCreate, rr.RR.String(), utils.ColorErr))
 	}
 	rType := dns.TypeToString[rr.RR.Header().Rrtype]
 	zw.Zone.Records[rType] = append(zw.Zone.Records[rType], rr)
-	zw.addAction(utils.ToOutput(utils.RecordCreate, rr.RR.String(), utils.ColorSuc))
+	zw.AddAction(utils.ToOutput(utils.RecordCreate, rr.RR.String(), utils.ColorSuc))
 	return nil
 }
 
@@ -67,24 +71,24 @@ func (zw *ZoneWorker) DeleteRecordByName(rName, rType string) error {
 				zw.Zone.Records[rType][:i],
 				zw.Zone.Records[rType][i+1:]...,
 			)
-			zw.addAction(utils.ToOutput(utils.RecordDelete, rName, rType, utils.ColorSuc))
+			zw.AddAction(utils.ToOutput(utils.RecordDelete, rName, rType, utils.ColorSuc))
 			return nil
 		}
 	}
 
-	zw.addAction(utils.ToOutput(utils.RecordNotDelete, rName, rType, utils.ColorErr))
+	zw.AddAction(utils.ToOutput(utils.RecordNotDelete, rName, rType, utils.ColorErr))
 	return errors.New(utils.ToOutput(utils.RecordNotDelete, rName, rType, utils.ColorErr))
 }
 
 func (zw *ZoneWorker) UpdateRecordByName(rName, rType string, newRR ExRR) error {
 	if !zw.VerifyExistByName(rName, rType) {
-		zw.addAction(utils.ToOutput(utils.RecordNotUpdate, rName, rType, utils.ColorErr))
+		zw.AddAction(utils.ToOutput(utils.RecordNotUpdate, rName, rType, utils.ColorErr))
 		return errors.New(utils.ToOutput(utils.RecordNotFound, rName, rType, utils.ColorErr))
 	}
 	for i, rr := range zw.Zone.Records[rType] {
 		if rr.RR.Header().Name == dns.CanonicalName(rName) {
 			zw.Zone.Records[rType][i] = rr
-			zw.addAction(utils.ToOutput(utils.RecordUpdate, rName, rType, utils.ColorSuc))
+			zw.AddAction(utils.ToOutput(utils.RecordUpdate, rName, rType, utils.ColorSuc))
 			return nil
 		}
 	}
@@ -156,10 +160,10 @@ func (zw *ZoneWorker) UpdateSerial() error {
 	newSerial, err := newSerial(zw.Zone.SOA.Serial)
 	if err != nil {
 		zw.Errors = append(zw.Errors, err)
-		zw.addAction(utils.ToOutput(utils.SerialNotUpdated, utils.ColorErr))
+		zw.AddAction(utils.ToOutput(utils.SerialNotUpdated, utils.ColorErr))
 		return err
 	}
 	zw.Zone.SOA.Serial = newSerial
-	zw.addAction(utils.ToOutput(utils.SerialUpdated, utils.ColorErr))
+	zw.AddAction(utils.ToOutput(utils.SerialUpdated, utils.ColorErr))
 	return nil
 }

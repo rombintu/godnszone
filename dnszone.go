@@ -62,7 +62,7 @@ func ZoneFromFile(zoneName, fileName string) *ZoneWorker {
 	}
 
 	if err := zp.Err(); err != nil {
-		zw.addError(err.Error())
+		zw.AddError(err.Error())
 	}
 
 	return zw
