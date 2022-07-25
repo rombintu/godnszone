@@ -9,6 +9,7 @@ import (
 
 type Zone struct {
 	SOA     *dns.SOA
+	Origin  string
 	Domain  string
 	Serial  uint32
 	Records map[string][]ExRR
@@ -113,13 +114,20 @@ func (zw *ZoneWorker) VerifyExist(rr ExRR) bool {
 }
 
 func (zw *ZoneWorker) Save(autoSerial bool) error {
-	// TODO
 	if autoSerial {
 		if err := zw.UpdateSerial(); err != nil {
 			return err
 		}
 	}
 	// TODO
+	var content string = utils.ToHeader("TTL", zw.Zone.SOA.Hdr.Ttl)
+	content += utils.ToHeader("ORIGIN", zw.Zone.Origin)
+	content += utils.ToSOA(*zw.Zone.SOA, zw.Zone.Serial)
+	for _, rr := range zw.Zone.Records {
+		for _, r := range rr {
+			content += ToRR(r, zw.Zone.Origin)
+		}
+	}
 	return nil
 }
 

@@ -3,11 +3,14 @@ package utils
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/miekg/dns"
 )
 
 // Execute any commands from shell
@@ -73,4 +76,49 @@ func Copy(src, dst string) error {
 
 func FilePathToBackupPath(fileName string) string {
 	return fmt.Sprintf("%s.bak", fileName)
+}
+
+func ToFile(content, filePath string) error {
+	if err := ioutil.WriteFile(filePath, []byte(content), 0644); err != nil {
+		return err
+	}
+	return nil
+}
+
+func ToIsDomain(domain, name string) string {
+	if domain == name {
+		return "@"
+	} else {
+		return domain
+	}
+}
+
+func ToIsTTL(globalTTL, ttl uint32) string {
+	if ttl != globalTTL {
+		return fmt.Sprint(ttl)
+	} else {
+		return ""
+	}
+}
+
+func ToHeader(h string, s interface{}) string {
+	return fmt.Sprintf("$%s %s\n", h, s)
+}
+
+func ToSubHeader(h string, s interface{}) string {
+	return fmt.Sprintf("@%s %s\n", h, s)
+}
+
+func ToSOA(soa dns.SOA, newSerial uint32) string {
+	return fmt.Sprintf(
+		"@	%s	%s %s %s (\n\t%d ; serial\n\t%d ; retry\n\t%d ; expire\n\t%d ; minimum\n)\n",
+		dns.ClassToString[soa.Hdr.Class],
+		dns.TypeToString[soa.Hdr.Rrtype],
+		soa.Ns,
+		soa.Mbox,
+		newSerial,
+		soa.Retry,
+		soa.Expire,
+		soa.Minttl,
+	)
 }

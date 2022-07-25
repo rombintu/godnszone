@@ -197,3 +197,8 @@ func TestBackup(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestGetSOA(t *testing.T) {
+	zw := ZoneFromFile(zoneTestName, fileTestName)
+	fmt.Printf("%+v", *zw.Zone.SOA)
+}

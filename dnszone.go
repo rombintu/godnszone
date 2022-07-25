@@ -49,8 +49,9 @@ func ZoneFromFile(zoneName, fileName string) *ZoneWorker {
 		switch rr.Header().Rrtype {
 		case dns.TypeSOA:
 			zw.Zone.SOA = rr.(*dns.SOA)
-			zw.Zone.Domain = rr.(*dns.SOA).Header().Name
-			zw.Zone.Serial = rr.(*dns.SOA).Serial
+			zw.Zone.Domain = zw.Zone.SOA.Header().Name
+			zw.Zone.Serial = zw.Zone.SOA.Serial
+			zw.Zone.Origin = zw.Zone.SOA.Hdr.Name
 		default:
 			rType := dns.TypeToString[rr.Header().Rrtype]
 			zw.Zone.Records[rType] = append(zw.Zone.Records[rType], newExRRFromRR(rr, zp.Comment()))
@@ -97,4 +98,16 @@ func newExRRFromDry(rr, comment string) (ExRR, error) {
 
 func TypeFromRR(rr ExRR) string {
 	return dns.TypeToString[rr.RR.Header().Rrtype]
+}
+
+func ToRR(rr ExRR, domain string, gTTL uint16) string {
+	origin := utils.ToIsDomain(domain, rr.RR.Header().Name)
+	ttl := if 
+	return fmt.Sprintf(
+		"%s\t%s\t%s\t%s",
+		origin,
+		dns.ClassToString[rr.RR.Header().Class],
+		dns.TypeToString[rr.RR.Header().Rrtype],
+
+	)
 }
