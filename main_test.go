@@ -202,3 +202,18 @@ func TestGetSOA(t *testing.T) {
 	zw := ZoneFromFile(zoneTestName, fileTestName)
 	fmt.Printf("%+v", *zw.Zone.SOA)
 }
+
+func TestSave(t *testing.T) {
+	zw := ZoneFromFile(zoneTestName, fileTestName)
+	zw.Save(true)
+}
+
+func TestGetOneRRA(t *testing.T) {
+	zw := ZoneFromFile(zoneTestName, fileTestName)
+	fmt.Println(utils.GetPayloadFromRR(zw.Zone.Records["A"][0].RR))
+}
+
+func TestGetOneRRTXT(t *testing.T) {
+	zw := ZoneFromFile(zoneTestName, fileTestName)
+	fmt.Println(utils.GetPayloadFromRR(zw.Zone.Records["TXT"][0].RR))
+}

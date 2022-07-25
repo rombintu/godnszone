@@ -50,7 +50,7 @@ func ZoneFromFile(zoneName, fileName string) *ZoneWorker {
 		case dns.TypeSOA:
 			zw.Zone.SOA = rr.(*dns.SOA)
 			zw.Zone.Domain = zw.Zone.SOA.Header().Name
-			zw.Zone.Serial = zw.Zone.SOA.Serial
+			// zw.Zone.Serial = zw.Zone.SOA.Serial
 			zw.Zone.Origin = zw.Zone.SOA.Hdr.Name
 		default:
 			rType := dns.TypeToString[rr.Header().Rrtype]
@@ -100,14 +100,17 @@ func TypeFromRR(rr ExRR) string {
 	return dns.TypeToString[rr.RR.Header().Rrtype]
 }
 
-func ToRR(rr ExRR, domain string, gTTL uint16) string {
+func ToRR(rr ExRR, domain string, gTTL uint32) string {
 	origin := utils.ToIsDomain(domain, rr.RR.Header().Name)
-	ttl := if 
+	ttl := utils.ToIsTTL(gTTL, rr.RR.Header().Ttl)
 	return fmt.Sprintf(
-		"%s\t%s\t%s\t%s",
-		origin,
+		"%s\t\t\t%s\t\t%s\t\t%s\t\t%s %s\n",
+		// dns.SplitDomainName(origin)[0],
+		origin, // TODO
+		ttl,
 		dns.ClassToString[rr.RR.Header().Class],
 		dns.TypeToString[rr.RR.Header().Rrtype],
-
+		utils.GetPayloadFromRR(rr.RR),
+		rr.Comment,
 	)
 }

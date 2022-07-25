@@ -8,10 +8,10 @@ import (
 )
 
 type Zone struct {
-	SOA     *dns.SOA
-	Origin  string
-	Domain  string
-	Serial  uint32
+	SOA    *dns.SOA
+	Origin string
+	Domain string
+	// Serial  uint32
 	Records map[string][]ExRR
 }
 
@@ -119,15 +119,25 @@ func (zw *ZoneWorker) Save(autoSerial bool) error {
 			return err
 		}
 	}
-	// TODO
-	var content string = utils.ToHeader("TTL", zw.Zone.SOA.Hdr.Ttl)
-	content += utils.ToHeader("ORIGIN", zw.Zone.Origin)
-	content += utils.ToSOA(*zw.Zone.SOA, zw.Zone.Serial)
+
+	if err := zw.Backup(); err != nil {
+		return err
+	}
+
+	var content string = utils.ToTTL("TTL", zw.Zone.SOA.Hdr.Ttl)
+	content += utils.ToOrigin("ORIGIN", zw.Zone.Origin)
+	content += utils.ToSOA(*zw.Zone.SOA, zw.Zone.SOA.Serial)
 	for _, rr := range zw.Zone.Records {
 		for _, r := range rr {
-			content += ToRR(r, zw.Zone.Origin)
+			content += ToRR(r, zw.Zone.Origin, zw.Zone.SOA.Hdr.Ttl)
 		}
+		content += "\n"
 	}
+
+	if err := utils.ToFile(content, zw.FilePath); err != nil {
+		return err
+	}
+
 	return nil
 }
 

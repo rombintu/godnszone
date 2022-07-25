@@ -89,20 +89,24 @@ func ToIsDomain(domain, name string) string {
 	if domain == name {
 		return "@"
 	} else {
-		return domain
+		return name
 	}
 }
 
 func ToIsTTL(globalTTL, ttl uint32) string {
 	if ttl != globalTTL {
-		return fmt.Sprint(ttl)
+		return fmt.Sprintf("%d", ttl)
 	} else {
 		return ""
 	}
 }
 
-func ToHeader(h string, s interface{}) string {
-	return fmt.Sprintf("$%s %s\n", h, s)
+func ToTTL(h string, s uint32) string {
+	return fmt.Sprintf("$%s %d ;\n", h, s)
+}
+
+func ToOrigin(h string, s string) string {
+	return fmt.Sprintf("$%s %s ;\n", h, s)
 }
 
 func ToSubHeader(h string, s interface{}) string {
@@ -111,14 +115,21 @@ func ToSubHeader(h string, s interface{}) string {
 
 func ToSOA(soa dns.SOA, newSerial uint32) string {
 	return fmt.Sprintf(
-		"@	%s	%s %s %s (\n\t%d ; serial\n\t%d ; retry\n\t%d ; expire\n\t%d ; minimum\n)\n",
+		"%s\t%s %s %s %s (\n\t%d ; serial\n\t%d ; refresh\n\t%d ; retry\n\t%d ; expire\n\t%d ; minimum\n)\n\n",
+		"@", // TODO
 		dns.ClassToString[soa.Hdr.Class],
 		dns.TypeToString[soa.Hdr.Rrtype],
 		soa.Ns,
 		soa.Mbox,
 		newSerial,
+		soa.Refresh,
 		soa.Retry,
 		soa.Expire,
 		soa.Minttl,
 	)
+}
+
+func GetPayloadFromRR(rr dns.RR) string {
+	ss := strings.Split(rr.String(), "\t")
+	return ss[len(ss)-1]
 }
