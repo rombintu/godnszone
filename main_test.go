@@ -86,14 +86,14 @@ func TestAddRecord(t *testing.T) {
 	fmt.Println("TEST WITH NOT EXIST >>")
 	zw := ZoneFromFile(zoneTestName, fileTestName)
 	rr1, _ := dns.NewRR("ns6.example A 192.199.228.1")
-	if err := zw.AddRecord(newExRRFromRR(rr1, "Example create")); err != nil {
+	if err := zw.AddRecord(NewExRRFromRR(rr1, "Example create")); err != nil {
 		t.Error(err)
 	}
 	fmt.Println(zw.GetActions())
 
 	fmt.Println("TEST WITH EXIST >>")
 	rr2, _ := dns.NewRR("ns5.example.com A 192.26.238.38")
-	if err := zw.AddRecord(newExRRFromRR(rr2, "Example create")); err != nil {
+	if err := zw.AddRecord(NewExRRFromRR(rr2, "Example create")); err != nil {
 		t.Error(err)
 	}
 	fmt.Println(zw.GetActions())
@@ -106,7 +106,7 @@ func TestUpdateRecord(t *testing.T) {
 	if err := zw.UpdateRecordByName(
 		"ns50.example.com",
 		"ABV",
-		newExRRFromRR(rr1, ""),
+		NewExRRFromRR(rr1, ""),
 	); err != nil {
 		t.Error(err)
 	}
@@ -117,7 +117,7 @@ func TestUpdateRecord(t *testing.T) {
 	if err := zw.UpdateRecordByName(
 		"ns5.example.com",
 		"A",
-		newExRRFromRR(rr2, "Example create"),
+		NewExRRFromRR(rr2, "Example create"),
 	); err != nil {
 		t.Error(err)
 	}
@@ -125,9 +125,9 @@ func TestUpdateRecord(t *testing.T) {
 }
 
 func TestVerifyExist(t *testing.T) {
-	rr1, _ := newExRRFromDry("example.com NS ns1.example.com", "")
-	rr2, _ := newExRRFromDry("ns5.example.com A 192.26.238.38", "")
-	rr3, _ := newExRRFromDry("ns1.example.ru TXT fsdffsdf", "")
+	rr1, _ := NewExRRFromDry("example.com NS ns1.example.com", "")
+	rr2, _ := NewExRRFromDry("ns5.example.com A 192.26.238.38", "")
+	rr3, _ := NewExRRFromDry("ns1.example.ru TXT fsdffsdf", "")
 	var tests = []struct {
 		in1  ExRR
 		want bool
