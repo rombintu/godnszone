@@ -85,11 +85,18 @@ func ToFile(content, filePath string) error {
 	return nil
 }
 
+func SliceToStr(slice []string) string {
+	return strings.Join(slice, ".")
+}
+
 func ToIsDomain(domain, name string) string {
+	sizeDomain := len(dns.SplitDomainName(domain))
 	if domain == name {
 		return "@"
 	} else {
-		return name
+		return SliceToStr(
+			dns.SplitDomainName(name)[:len(dns.SplitDomainName(name))-sizeDomain],
+		)
 	}
 }
 
@@ -101,12 +108,12 @@ func ToIsTTL(globalTTL, ttl uint32) string {
 	}
 }
 
-func ToTTL(h string, s uint32) string {
-	return fmt.Sprintf("$%s %d ;\n", h, s)
+func ToTTL(ttl uint32) string {
+	return fmt.Sprintf("$TTL %d ;\n", ttl)
 }
 
-func ToOrigin(h string, s string) string {
-	return fmt.Sprintf("$%s %s ;\n", h, s)
+func ToOrigin(o string) string {
+	return fmt.Sprintf("$ORIGIN %s ;\n", o)
 }
 
 func ToSubHeader(h string, s interface{}) string {

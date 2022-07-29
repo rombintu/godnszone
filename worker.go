@@ -128,8 +128,8 @@ func (zw *ZoneWorker) Save(autoSerial bool) error {
 		return err
 	}
 
-	var content string = utils.ToTTL("TTL", zw.Zone.SOA.Hdr.Ttl)
-	content += utils.ToOrigin("ORIGIN", zw.Zone.Origin)
+	var content string = utils.ToTTL(zw.Zone.SOA.Hdr.Ttl)
+	content += utils.ToOrigin(zw.Zone.Origin)
 	content += utils.ToSOA(*zw.Zone.SOA, zw.Zone.SOA.Serial)
 	for _, rr := range zw.Zone.Records {
 		for _, r := range rr {
