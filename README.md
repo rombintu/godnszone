@@ -73,23 +73,23 @@ func main() {
 	zw := dnszone.ZoneFromFile(zoneName, fileName)
 	rr1, _ := dnszone.NewExRRFromDry("ns6.example A 192.199.228.1", "Some comment")
 	if err := zw.AddRecord(rr1); err != nil {
-		zw.AddError(err)
+		zw.AddError(err.Error())
 	}
 
 	// Create the same record [is FAILED]
 	rr2, _ := dnszone.NewExRRFromDry("ns6.example A 192.199.119.1", "Some comment 2")
 	if err := zw.AddRecord(rr2); err != nil {
-		zw.AddError(err)
+		zw.AddError(err.Error())
 	}
 
 	// Update record
 	if err := zw.UpdateRecordByName("ns6.example", "A", rr2); err != nil {
-		zw.AddError(err)
+		zw.AddError(err.Error())
 	}
 
 	// Delete record
 	if err := zw.DeleteRecordByName("ns6.example", "A"); err != nil {
-		zw.AddError(err)
+		zw.AddError(err.Error())
 	}
 
 	// Print my actions
@@ -98,7 +98,7 @@ func main() {
 		fmt.Printf("%d) %s\n", i+1, a)
 	}
 
-	// Get and Print rrrors
+	// Get and Print errors
 	errors := zw.GetErrors()
 	if len(errors) != 0 {
 		for i, r := range errors {
@@ -113,3 +113,4 @@ func main() {
 	autoSerial := true
 	zw.Save(autoSerial)
 }
+```
