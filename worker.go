@@ -164,6 +164,6 @@ func (zw *ZoneWorker) UpdateSerial() error {
 		return err
 	}
 	zw.Zone.SOA.Serial = newSerial
-	zw.AddAction(utils.ToOutput(utils.SerialUpdated, utils.ColorErr))
+	zw.AddAction(utils.ToOutput(utils.SerialUpdated, utils.ColorSuc))
 	return nil
 }
