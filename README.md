@@ -115,4 +115,4 @@ func main() {
 }
 ```
 
-By Nickolsky
+Tags fixing
