@@ -87,7 +87,7 @@ func (zw *ZoneWorker) UpdateRecordByName(rName, rType string, newRR ExRR) error 
 	}
 	for i, rr := range zw.Zone.Records[rType] {
 		if rr.RR.Header().Name == dns.CanonicalName(rName) {
-			zw.Zone.Records[rType][i] = rr
+			zw.Zone.Records[rType][i] = newRR
 			zw.AddAction(utils.ToOutput(utils.RecordUpdate, rName, rType, utils.ColorSuc))
 			return nil
 		}
